@@ -1,0 +1,10 @@
+Package: com.adambialaten2026-cyber.faceid
+Name: FaceID
+Depends: 
+Version: 0.1-1
+Architecture: iphoneos-arm64
+Description: Adds a Face ID-style biometric permission overlay for legacy devices
+Maintainer: adambialaten2026-cyber
+Author: adambialaten2026-cyber
+Section: Tweaks
+Icon: file:///Library/PreferenceBundles/FaceID.bundle/Icon.png
