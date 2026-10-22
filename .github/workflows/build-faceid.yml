@@ -1,0 +1,59 @@
+name: Build FaceID tweak
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-tweak:
+    runs-on: macos-14
+    env:
+      THEOS: ${{ github.workspace }}/.theos
+      THEOS_PACKAGE_SCHEME: rootless
+      TARGET: iphoneos-arm64
+      ARCHS: arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          set -euxo pipefail
+          xcode-select -p
+          brew update
+          brew install dpkg
+          mkdir -p "$HOME/bin"
+
+      - name: Install Theos
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git clone --depth=1 --recursive https://github.com/theos/theos.git "$THEOS"
+          git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
+          echo "$THEOS/bin" >> "$GITHUB_PATH"
+          echo "THEOS=$THEOS" >> "$GITHUB_ENV"
+          echo "PATH=$PATH:$THEOS/bin" >> "$GITHUB_ENV"
+
+      - name: Prepare asset bundle
+        shell: bash
+        run: |
+          set -euxo pipefail
+          chmod +x scripts/extract-faceid-assets.sh
+          ./scripts/extract-faceid-assets.sh
+
+      - name: Build .deb package
+        shell: bash
+        run: |
+          set -euxo pipefail
+          make clean || true
+          make package
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: faceid-deb
+          path: packages/*.deb
+          if-no-files-found: error
